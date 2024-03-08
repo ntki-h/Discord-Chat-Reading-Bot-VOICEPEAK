@@ -1,10 +1,16 @@
 import json
+import logging
 
 class WordDictionary:
-    
     def __init__(self, dictionary=None):
         self.dictionary = dictionary if dictionary else {}
         self.file_path = 'config/word_dictionary.json'
+        self.logger = logging.getLogger(__name__)
+        handler = logging.FileHandler('word_dictionary.log')
+        handler.setLevel(logging.ERROR)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
         self.load_from_json()
 
     def register_word(self, word, reading):
@@ -17,8 +23,12 @@ class WordDictionary:
         return text
 
     def save_to_json(self):
-        with open(self.file_path, 'w', encoding='utf-8') as f:
-            json.dump(self.dictionary, f, ensure_ascii=False, indent=4)
+        try:
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                json.dump(self.dictionary, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            self.logger.error(f"Failed to save dictionary to JSON: {e}")
+            raise
 
     def load_from_json(self):
         try:
@@ -28,3 +38,6 @@ class WordDictionary:
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 json.dump({}, f, ensure_ascii=False, indent=4)
             self.dictionary = {}
+        except Exception as e:
+            self.logger.error(f"Failed to load dictionary from JSON: {e}")
+            raise
