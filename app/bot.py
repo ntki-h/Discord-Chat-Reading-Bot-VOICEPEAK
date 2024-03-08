@@ -69,7 +69,8 @@ class MyDiscordBot(discord.Client):
                             f"> {self.prefix}join: ボイスチャンネルに接続します。\n" \
                             f"> {self.prefix}leave: ボイスチャンネルから切断します。\n" \
                             f"> {self.prefix}volume: 音量を設定します。\n> \t例: `{self.prefix}volume 0.5`\n" \
-                            f"> {self.prefix}emotion: 感情を設定します。\n> \t例: `{self.prefix}emotion 100[幸せ] 0[悲しみ] 0[楽しみ] 0[怒り]`\n"
+                            f"> {self.prefix}emotion: 感情を設定します。\n> \t例: `{self.prefix}emotion 100[幸せ] 0[悲しみ] 0[怒り] 0[楽しみ]`\n" \
+                            f"> {self.prefix}dictionary: 単語の辞書登録を行います。\n> \t例: `{self.prefix}dictionary 単語 読み方`\n"
             await message.channel.send(help_message)
         else:
             await events.synthesize_and_play(message, self.voice_synthesizer, self.word_dictionary, self.config["ffmpeg_executable_path"], self.volume)
