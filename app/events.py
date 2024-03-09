@@ -30,8 +30,19 @@ async def leave_voice_channel(guild, bot=None):
 
 async def synthesize_and_play(message, voice_synthesizer, word_dictionary, ffmpeg_executable_path, volume=1.0):
     try:
+        # ユーザーメンションを表示名に置き換え
         for user in message.mentions:
-            message.content = message.content.replace(f'<@{user.id}>', user.name)
+            message.content = message.content.replace(f'<@{user.id}>', user.display_name)
+            message.content = message.content.replace(f'<@!{user.id}>', user.display_name)
+
+        # ロールメンションをロール名に置き換え
+        for role in message.role_mentions:
+            message.content = message.content.replace(f'<@&{role.id}>', role.name)
+
+        # チャンネルメンションをチャンネル名に置き換え
+        for channel in message.channel_mentions:
+            message.content = message.content.replace(f'<#{channel.id}>', f'#{channel.name}')
+        
         
         voice_client = message.guild.voice_client
         if voice_client and voice_client.is_connected() and message.author.voice:
