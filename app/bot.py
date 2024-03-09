@@ -12,12 +12,12 @@ class MyDiscordBot(discord.Client):
         self.voice_synthesizer = VoiceSynthesizer(config["voicepeak_executable_path"], config["default_navigator"])
         self.word_dictionary = WordDictionary()
         self.prefix = config["prefix"]
+        self.target_channel_id = None
         self.volume = 1.0
         self.emotion_happy = 100
         self.emotion_sad = 0
         self.emotion_angry = 0
         self.emotion_fun = 0
-        # ロガーの設定
         self.logger = logging.getLogger(__name__)
         handler = logging.FileHandler('bot.log')
         handler.setLevel(logging.ERROR)
@@ -43,13 +43,18 @@ class MyDiscordBot(discord.Client):
         try:
             if message.content.startswith(self.prefix + 'join'):
                 if message.author.voice and message.author.voice.channel:
+                    self.target_channel_id = message.channel.id
                     await events.join_voice_channel(message.author.voice.channel)
                 else:
                     await message.channel.send("ボイスチャンネルに接続してください。")
             elif message.content.startswith(self.prefix + 'leave'):
+                self.target_channel_id = None
                 await events.leave_voice_channel(message.guild, self)
             elif message.content.startswith(self.prefix + 'volume'):
                 try:
+                    if self.is_valid_channel(message):
+                        return
+                    
                     new_volume = float(message.content.split(' ')[1])
                     self.volume = max(0.0, min(1.0, new_volume))
                     await message.channel.send(f"音量を{self.volume}に設定しました。")
@@ -57,6 +62,9 @@ class MyDiscordBot(discord.Client):
                     await message.channel.send("正しい音量を指定してください。例: `" + self.prefix + "volume 0.5`")
             elif message.content.startswith(self.prefix + 'emotion'):
                 try:
+                    if self.is_valid_channel(message):
+                        return
+                    
                     args = message.content.split(' ')[1:]
                     self.emotion_happy = int(args[0])
                     self.emotion_sad = int(args[1])
@@ -68,6 +76,9 @@ class MyDiscordBot(discord.Client):
                     await message.channel.send("正しい感情を指定してください。例: `" + self.prefix + "emotion 100[幸せ] 0[悲しみ] 0[楽しみ] 0[怒り]`")
             elif message.content.startswith(self.prefix + 'dictionary'):
                 try:
+                    if self.is_valid_channel(message):
+                        return
+                    
                     _, original_word, converted_word = message.content.split(' ', 2)
                     self.word_dictionary.register_word(original_word, converted_word)
                     await message.channel.send(f"'{original_word}'を'{converted_word}'として登録しました。")
@@ -82,6 +93,9 @@ class MyDiscordBot(discord.Client):
                                 f"> {self.prefix}dictionary: 単語の辞書登録を行います。\n> \t例: `{self.prefix}dictionary 単語 読み方`\n"
                 await message.channel.send(help_message)
             else:
+                if self.is_valid_channel(message):
+                    return
+                
                 await events.synthesize_and_play(message, self.voice_synthesizer, self.word_dictionary, self.config["ffmpeg_executable_path"], self.volume)
         except Exception as e:
             self.logger.error(f"Failed to process message: {e}")
@@ -93,10 +107,19 @@ class MyDiscordBot(discord.Client):
                 if before.channel.guild.voice_client:
                     members = before.channel.members
                     if len(members) == 1 and self.user in members:
+                        self.target_channel_id = None
                         await events.leave_voice_channel(before.channel.guild, self)
         except Exception as e:
             self.logger.error(f"Failed to update voice state: {e}")
             raise
+        
+    def is_valid_channel(self, message):
+        if self.target_channel_id and message.channel.id != self.target_channel_id:
+            return True
+        if not message.guild.voice_client or not message.guild.voice_client.is_connected():
+            return True
+        
+        return False
 
 config = load_config()
 intents = discord.Intents.default()
