@@ -30,6 +30,9 @@ async def leave_voice_channel(guild, bot=None):
 
 async def synthesize_and_play(message, voice_synthesizer, word_dictionary, ffmpeg_executable_path, volume=1.0):
     try:
+        for user in message.mentions:
+            message.content = message.content.replace(f'<@!{user.id}>', user.name)
+        
         voice_client = message.guild.voice_client
         if voice_client and voice_client.is_connected() and message.author.voice:
             script = word_dictionary.convert_text(message.content)
