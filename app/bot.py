@@ -5,6 +5,30 @@ from word_dictionary import WordDictionary
 import events
 import logging
 
+# チャットデータを一時的に保持しておくためのクラス
+class ChatData:
+    def __init__(self, message, emotion_happy, emotion_sad, emotion_angry, emotion_fun):
+        self.message = message
+        self.emotion_happy = emotion_happy
+        self.emotion_sad = emotion_sad
+        self.emotion_angry = emotion_angry
+        self.emotion_fun = emotion_fun
+        
+    def get_message(self):
+        return self.message
+    
+    def get_emotion_happy(self):
+        return self.emotion_happy
+    
+    def get_emotion_sad(self):
+        return self.emotion_sad
+    
+    def get_emotion_angry(self):
+        return self.emotion_angry
+    
+    def get_emotion_fun(self):
+        return self.emotion_fun
+
 class MyDiscordBot(discord.Client):
     def __init__(self, config, intents):
         super().__init__(intents=intents)
@@ -24,6 +48,8 @@ class MyDiscordBot(discord.Client):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
+        self.chat_data_list = []
+        self.is_working = False
 
     def reset_emotion(self):
         self.emotion_happy = 100
@@ -31,6 +57,7 @@ class MyDiscordBot(discord.Client):
         self.emotion_angry = 0
         self.emotion_fun = 0
         self.voice_synthesizer.set_emotion(self.emotion_happy, self.emotion_sad, self.emotion_angry, self.emotion_fun)
+        self.voice_synthesizer.set_pitch(0)
 
     async def on_ready(self):
         self.voice_synthesizer.set_emotion(self.emotion_happy, self.emotion_sad, self.emotion_angry, self.emotion_fun)
@@ -74,6 +101,18 @@ class MyDiscordBot(discord.Client):
                     await message.channel.send(f"感情を設定しました。happy={self.emotion_happy}, sad={self.emotion_sad}, angry={self.emotion_angry}, fun={self.emotion_fun}")
                 except (IndexError, ValueError):
                     await message.channel.send("正しい感情を指定してください。例: `" + self.prefix + "emotion 100[幸せ] 0[悲しみ] 0[楽しみ] 0[怒り]`")
+            elif message.content.startswith(self.prefix + 'pitch'):
+                # 設定可能範囲は-300 ～ 300
+                try:
+                    if self.is_valid_channel(message):
+                        return
+                    
+                    new_pitch = int(message.content.split(' ')[1])
+                    self.pitch = max(-300, min(300, new_pitch))
+                    self.voice_synthesizer.set_pitch(self.pitch)
+                    await message.channel.send(f"音程を{self.pitch}に設定しました。")
+                except (IndexError, ValueError):
+                    await message.channel.send("正しい音程を指定してください。例: `" + self.prefix + "pitch 50`")
             elif message.content.startswith(self.prefix + 'dictionary'):
                 try:
                     if self.is_valid_channel(message):
@@ -95,6 +134,9 @@ class MyDiscordBot(discord.Client):
             else:
                 if self.is_valid_channel(message):
                     return
+                
+                # チャットデータを一時的に保持
+                #self.chat_data_list.append(ChatData(message.content, self.emotion_happy, self.emotion_sad, self.emotion_angry, self.emotion_fun))
                 
                 await events.synthesize_and_play(message, self.voice_synthesizer, self.word_dictionary, self.config["ffmpeg_executable_path"], self.volume)
         except Exception as e:

@@ -12,12 +12,17 @@ class VoiceSynthesizer:
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
+        self.pitch = 0
 
-    def set_emotion(self, happy, sad, angry, fun):
+    def set_emotion(self, happy, sad, angry, fun, pitch):
         self.emotion_happy = happy
         self.emotion_sad = sad
         self.emotion_angry = angry
         self.emotion_fun = fun
+        self.pitch = pitch
+
+    def set_pitch(self, pitch):
+        self.pitch = pitch
 
     def synthesize(self, script, output_path="output.wav"):
         args = [
@@ -26,6 +31,7 @@ class VoiceSynthesizer:
             "-n", self.narrator,
             "-o", output_path,
             "-e", f"happy={self.emotion_happy},sad={self.emotion_sad},angry={self.emotion_angry},fun={self.emotion_fun}"
+            "--pitch", self.pitch
         ]
         try:
             subprocess.run(args, check=True)

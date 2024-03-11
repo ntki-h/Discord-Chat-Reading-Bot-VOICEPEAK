@@ -1,6 +1,7 @@
 import discord
 import os
 import logging
+import re
 from voice_synthesizer import VoiceSynthesizer
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,8 @@ async def synthesize_and_play(message, voice_synthesizer, word_dictionary, ffmpe
         for channel in message.channel_mentions:
             message.content = message.content.replace(f'<#{channel.id}>', f'#{channel.name}')
         
+        # message.contentにURLが含まれている場合、URLを「URL省略」に置き換え
+        message.content = re.sub(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+', 'URL省略', message.content)
         
         voice_client = message.guild.voice_client
         if voice_client and voice_client.is_connected() and message.author.voice:
