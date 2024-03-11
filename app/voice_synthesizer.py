@@ -14,12 +14,11 @@ class VoiceSynthesizer:
         self.logger.addHandler(handler)
         self.pitch = 0
 
-    def set_emotion(self, happy, sad, angry, fun, pitch):
+    def set_emotion(self, happy, sad, angry, fun):
         self.emotion_happy = happy
         self.emotion_sad = sad
         self.emotion_angry = angry
         self.emotion_fun = fun
-        self.pitch = pitch
 
     def set_pitch(self, pitch):
         self.pitch = pitch
