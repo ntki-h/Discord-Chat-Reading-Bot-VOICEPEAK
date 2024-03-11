@@ -30,7 +30,7 @@ class VoiceSynthesizer:
             "-n", self.narrator,
             "-o", output_path,
             "-e", f"happy={self.emotion_happy},sad={self.emotion_sad},angry={self.emotion_angry},fun={self.emotion_fun}",
-            "--pitch", self.pitch
+            "--pitch", str(self.pitch)
         ]
         try:
             subprocess.run(args, check=True)
