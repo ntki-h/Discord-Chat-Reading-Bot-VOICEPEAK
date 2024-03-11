@@ -143,21 +143,21 @@ class MyDiscordBot(discord.Client):
             self.logger.error(f"Failed to process message: {e}")
             raise
 
-async def on_voice_state_update(self, member, before, after):
-    try:
-        # メンバーがボイスチャンネルから退出したかどうかを確認
-        if before.channel and not after.channel:
-            # ボットが接続しているボイスクライアントがあるかどうかを確認
-            if before.channel.guild.voice_client:
-                # ボットを除いた後のチャンネル内のメンバーのリストを取得
-                members = [member for member in before.channel.members if member != self.user]
-                # ボット以外にメンバーがいなくなったことを確認
-                if len(members) == 0:
-                    self.target_channel_id = None
-                    await events.leave_voice_channel(before.channel.guild, self)
-    except Exception as e:
-        self.logger.error(f"Failed to update voice state: {e}")
-        raise
+    async def on_voice_state_update(self, member, before, after):
+        try:
+            # メンバーがボイスチャンネルから退出したかどうかを確認
+            if before.channel and not after.channel:
+                # ボットが接続しているボイスクライアントがあるかどうかを確認
+                if before.channel.guild.voice_client:
+                    # ボットを除いた後のチャンネル内のメンバーのリストを取得
+                    members = [member for member in before.channel.members if member != self.user]
+                    # ボット以外にメンバーがいなくなったことを確認
+                    if len(members) == 0:
+                        self.target_channel_id = None
+                        await events.leave_voice_channel(before.channel.guild, self)
+        except Exception as e:
+            self.logger.error(f"Failed to update voice state: {e}")
+            raise
 
     def is_valid_channel(self, message):
         if self.target_channel_id and message.channel.id != self.target_channel_id:
