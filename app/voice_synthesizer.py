@@ -29,7 +29,7 @@ class VoiceSynthesizer:
             "-s", script,
             "-n", self.narrator,
             "-o", output_path,
-            "-e", f"happy={self.emotion_happy},sad={self.emotion_sad},angry={self.emotion_angry},fun={self.emotion_fun}"
+            "-e", f"happy={self.emotion_happy},sad={self.emotion_sad},angry={self.emotion_angry},fun={self.emotion_fun}",
             "--pitch", self.pitch
         ]
         try:
